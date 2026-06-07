@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual env
+venv/
+.venv/
+
+# Depot data
+depot-data/
+*.lock
+!depot.lock
+
+# Test / Experiment
+.pytest_cache/
+experiment-results/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Benchmarks temp
+test_plot.png
+wordcloud.png
+report.xlsx
+table_*.csv
+histogram.png
+test_*.png
+
+sales_dashboard.png

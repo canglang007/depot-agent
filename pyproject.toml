@@ -1,0 +1,33 @@
+[project]
+name = "depot"
+version = "1.0.0"
+description = "Depot — 面向代码生成Agent的按需依赖解析系统"
+authors = []
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+license = {text = "MIT"}
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+]
+
+[project.scripts]
+depot = "depot.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/your-org/depot"
+Documentation = "https://github.com/your-org/depot"
+Repository = "https://github.com/your-org/depot"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
