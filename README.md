@@ -35,7 +35,7 @@ Agent 生成代码 → Depot: AST分析→检测缺失→按需安装→隔离�
 ### 安装
 
 ```bash
-pip install -e .
+pip install depot-agent
 # 或
 pip install depot
 ```
