@@ -19,10 +19,20 @@
 ### 安装
 
 ```bash
-git clone https://github.com/your-org/depot.git
-cd depot
-pip install -e .
+# 从 PyPI 安装（推荐）
+pip install depot-agent
+
+# 或从 GitHub 安装最新版
+pip install git+https://github.com/canglang007/depot-agent.git
 ```
+
+### 安装 Claude Code Skill（可选）
+
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/canglang007/depot-agent/main/scripts/install-skill.sh)
+```
+
+安装后在 Claude Code 中输入 `/depot-agent` 即可调用 Skill。
 
 ### 一行代码
 
