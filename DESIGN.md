@@ -176,6 +176,26 @@ ImportError: No module named 'torch'
 
 **Depot 的结合**：AST 静态提取 + meta_path 运行时钩子 + pip 按需安装 = 完整依赖感知链路
 
+**Depot 的结合**：AST 静态提取 + meta_path 运行时钩子 + pip 按需安装 = 完整依赖感知链路
+
+### 3.4 现代 Agent 的依赖处理：范式分析
+
+一个关键问题是：Claude Code、Codex CLI 等最新 Agent 在依赖处理上是否有突破？
+
+| 现代 Agent | 依赖处理方式 | 所属范式 | 有 AST 预分析？ |
+|-----------|------------|---------|:------------:|
+| Claude Code | subprocess.run Python → ImportError → pip install | **B1 裸执行** | 否 |
+| Codex CLI (OpenAI) | 同上 | **B1 裸执行** | 否 |
+| Cursor CLI | 同上 | **B1 裸执行** | 否 |
+| SWE-Agent | ACI 命令执行脚本 | **B1 裸执行** | 否 |
+| Aider | subprocess 裸执行 | **B1 裸执行** | 否 |
+| Devin | Docker 预装固定环境 | **B2 预装** | 否 |
+| OpenAI Code Interpreter | 固定 330 包 | **B2 预装** | 否 |
+
+**核心发现**：所有现代 Agent 在依赖处理上仍属于 B1 或 B2 范式，没有任何一个在代码执行前进行 AST 预分析。Claude Code 再强，遇到 `import torch` 该报 `ModuleNotFoundError` 还是报。
+
+**Depot 的定位**：不是 Agent 的竞品，而是增强层。就像 GC（垃圾回收）之于内存管理——Depot 让任何 Agent 都能无感地享受按需依赖解析。已实现的 Claude Code Skill 集成是这一定位的直接证据。
+
 ### 3.4 与现有系统的核心差异
 
 下表将 Depot 与所有已知的 Agent 代码执行方案进行逐项对比：
