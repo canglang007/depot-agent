@@ -16,10 +16,14 @@
 2. [问题定义与Gap分析](#2-问题定义与gap分析)
 
 3. [相关工作](#3-相关工作)
-   - 3.1 代码执行沙箱
-   - 3.2 依赖解析工具
-   - 3.3 代码分析技术
-   - 3.4 与现有系统的核心差异
+
+   * 3.1 代码执行沙箱
+
+   * 3.2 依赖解析工具
+
+   * 3.3 代码分析技术
+
+   * 3.4 与现有系统的核心差异
 
 4. [系统设计](#4-系统设计)
 
@@ -176,16 +180,16 @@ ImportError: No module named 'torch'
 
 下表将 Depot 与所有已知的 Agent 代码执行方案进行逐项对比：
 
-| 系统 | 类型 | AST依赖检测 | 自动安装 | 结构化反馈 | Agent依赖感知 |
-|------|------|:----------:|:--------:|:--------:|:-----------:|
-| OpenAI Code Interpreter | 封闭沙箱 | ❌ | ❌ | ❌ | ❌ |
-| E2B (e2b.dev) | 开放沙箱 | ❌ | ⚠️ 需手动 | ❌ | ❌ |
-| Google AI Studio | 云端执行 | ❌ | ❌ | ❌ | ❌ |
-| CodeSandbox SDK | Web沙箱 | ❌ | ⚠️ 需手动 | ❌ | ❌ |
-| Open Interpreter | 本地执行 | ❌ | ⚠️ 失败后提示 | ❌ | ❌ |
-| Morph / Modal | 云平台 | ❌ | ❌ | ❌ | ❌ |
-| pipreqs | 静态工具 | ⚠️ 文件级 | ❌ | ❌ | ❌ |
-| **Depot (本系统)** | **Agent管道** | **✅** | **✅** | **✅** | **✅** |
+| 系统                                                            | 类型    | AST依赖检测 |   自动安装   | 结构化反馈 | Agent依赖感知 |
+| ------------------------------------------------------------- | ----- | :-----: | :------: | :---: | :-------: |
+| OpenAI Code Interpreter                                       | 封闭沙箱  |    ❌    |     ❌    |   ❌   |     ❌     |
+| E2B (e2b.dev)                                                 | 开放沙箱  |    ❌    |  ⚠️ 需手动  |   ❌   |     ❌     |
+| Google AI Studio                                              | 云端执行  |    ❌    |     ❌    |   ❌   |     ❌     |
+| CodeSandbox SDK                                               | Web沙箱 |    ❌    |  ⚠️ 需手动  |   ❌   |     ❌     |
+| Open Interpreter                                              | 本地执行  |    ❌    | ⚠️ 失败后提示 |   ❌   |     ❌     |
+| Morph / Modal                                                 | 云平台   |    ❌    |     ❌    |   ❌   |     ❌     |
+| pipreqs                                                       | 静态工具  |  ⚠️ 文件级 |     ❌    |   ❌   |     ❌     |
+| **Depot (本系统)** | **Agent管道** | **✅** | **✅** | **✅** | **✅** |       |         |          |       |           |
 
 > ⚠️ = 部分支持但非自动化。OpenAI Code Interpreter 预装固定 330 个包不可定制；E2B 需提前构建环境模板；Open Interpreter 只在执行失败后才提示用户手动安装。
 
@@ -194,6 +198,7 @@ ImportError: No module named 'torch'
 Depot 的创新不在于某个算法组件（AST 解析、pip 安装都是成熟技术），而在于**架构创新**：将依赖管理从 Agent 的"手动负担"变为系统的"自动化管道"，使 Agent 完全不需要感知环境状态差异。
 
 直觉类比：
+
 ```
 B1 裸执行  = 没有 GC 的语言，程序员手动管理内存
 B2 全家桶  = 固定内存池，预分配好但浪费
@@ -540,9 +545,7 @@ torch 在 PyPI 上可用，最新版本为 2.4.0。
 
 * 每个任务执行 3 次取平均值（消除网络波动）
 
-#### Agent 配置
-
-* 使用 Claude Sonnet 4.6 作为代码生成 Agent
+#### 其他配置
 
 * 相同的 prompt 模板用于所有 baseline
 
@@ -565,7 +568,6 @@ torch 在 PyPI 上可用，最新版本为 2.4.0。
 
 ### 7.2 分析维度
 
-
 对每个 metric，分析：
 
 1. 各 baseline 的绝对数值对比
@@ -574,7 +576,7 @@ torch 在 PyPI 上可用，最新版本为 2.4.0。
 
 3. 缓存命中率对性能的影响
 
----
+***
 
 ## 8. 实验结果与分析
 
@@ -582,70 +584,76 @@ torch 在 PyPI 上可用，最新版本为 2.4.0。
 
 三种方案在 Docker 环境中对比，模拟 Agent 完成 15 个含第三方依赖的 Python 任务。每个 Agent 修复周期模拟 LLM 等待 ~3s + pip install + 重执行。
 
-| 方案 | 环境 | 代表范式 |
-|------|------|---------|
-| **B1** 典型开发机 | 预装 5 个最常用包 (numpy/pandas/matplotlib/requests/pyyaml, 373MB) | Open Interpreter, AutoGPT |
-| **B2** 预装全家桶 | 预装 42 个常用数据科学包 (1057MB) | OpenAI Code Interpreter, E2B 模板 |
-| **Depot** | 零预装，按需检测+安装+缓存+结构化反馈 | 本系统 |
+| 方案           | 环境                                                          | 代表范式                            |
+| ------------ | ----------------------------------------------------------- | ------------------------------- |
+| **B1** 典型开发机 | 预装 5 个最常用包 (numpy/pandas/matplotlib/requests/pyyaml, 373MB) | Open Interpreter, AutoGPT       |
+| **B2** 预装全家桶 | 预装 42 个常用数据科学包 (1057MB)                                     | OpenAI Code Interpreter, E2B 模板 |
+| **Depot**    | 零预装，按需检测+安装+缓存+结构化反馈                                        | 本系统                             |
 
 **Agent Token 模型** (基于真实 LLM 交互):
-- 一次成功: 600 tokens (代码 500 + 确认 100)
-- B1/B2 失败需修复: 1,700 tokens (代码 + ImportError + LLM 分析故障 + 生成 pip install + 安装反馈 + 重执行) + 2 轮对话
-- Depot: 700 tokens (代码 500 + 结构化报告 200)，始终 1 轮 (依赖安装自动化，Agent 不等待)
+
+* 一次成功: 600 tokens (代码 500 + 确认 100)
+
+* B1/B2 失败需修复: 1,700 tokens (代码 + ImportError + LLM 分析故障 + 生成 pip install + 安装反馈 + 重执行) + 2 轮对话
+
+* Depot: 700 tokens (代码 500 + 结构化报告 200)，始终 1 轮 (依赖安装自动化，Agent 不等待)
 
 **任务分组**:
-- **普遍包** (4 个): 依赖仅限 numpy/pandas/matplotlib/requests/pyyaml → 三方都能一次成功
-- **B2 覆盖** (5 个): 需 scipy/sklearn/bs4/openpyxl/pillow → B1 失败，B2/Depot 成功
-- **B2 盲区** (6 个): 需 wordcloud/faker/pendulum/qrcode/loguru/tenacity → B1/B2 都失败，仅 Depot 成功
+
+* **普遍包** (4 个): 依赖仅限 numpy/pandas/matplotlib/requests/pyyaml → 三方都能一次成功
+
+* **B2 覆盖** (5 个): 需 scipy/sklearn/bs4/openpyxl/pillow → B1 失败，B2/Depot 成功
+
+* **B2 盲区** (6 个): 需 wordcloud/faker/pendulum/qrcode/loguru/tenacity → B1/B2 都失败，仅 Depot 成功
 
 ### 8.2 总览
 
 Agent 完成全部 15 个任务的总成本:
 
-| 指标 | B1 典型机 | B2 预装 | Depot |
-|------|---------|--------|-------|
-| **首次执行成功** | 6/15 (40%) | 9/15 (60%) | **14/15 (93%)** |
-| **Token 总消耗** | 18,900 | 15,600 | **10,500** |
-| **对话总轮次** | 24 轮 | 21 轮 | **15 轮** |
-| **端到端总时间** | 72.4s | 53.8s | 100.4s |
-| **Agent 修复次数** | 9 次 | 6 次 | **1 次** |
-| **基础设施** | 373MB (5包) | 1057MB (42包) | **0MB** |
+| 指标                                                     | B1 典型机 | B2 预装 | Depot  |
+| ------------------------------------------------------ | ------ | ----- | ------ |
+| **首次执行成功** | 6/15 (40%) | 9/15 (60%) | **14/15 (93%)** |        |       |        |
+| **Token 总消耗** | 18,900 | 15,600 | **10,500**           |        |       |        |
+| **对话总轮次** | 24 轮 | 21 轮 | **15 轮**                     |        |       |        |
+| **端到端总时间**                                             | 72.4s  | 53.8s | 100.4s |
+| **Agent 修复次数** | 9 次 | 6 次 | **1 次**                   |        |       |        |
+| **基础设施** | 373MB (5包) | 1057MB (42包) | **0MB**         |        |       |        |
 
-| 对比 | Token 节省 | 轮次减少 |
-|------|----------|---------|
-| Depot vs B1 | **-8,400 (-44%)** | **-9 (-37%)** |
-| Depot vs B2 | **-5,100 (-32%)** | **-6 (-28%)** |
+| 对比          | Token 节省                          | 轮次减少 |
+| ----------- | --------------------------------- | ---- |
+| Depot vs B1 | **-8,400 (-44%)** | **-9 (-37%)** |      |
+| Depot vs B2 | **-5,100 (-32%)** | **-6 (-28%)** |      |
 
 ### 8.3 逐任务完整数据
 
-| Task | 分类 | 依赖 | B1 首次 | B1 耗时 | B1 Token | B2 首次 | B2 耗时 | B2 Token | Depot | Depot 安装 | Depot 执行 | Depot 耗时 |
-|------|------|------|--------|--------|---------|--------|--------|---------|-------|----------|----------|----------|
-| T6 | common | pandas, requests | ✅ | 265ms | 600 | ✅ | 239ms | 600 | ✅ | 23,063ms | 217ms | 23,280ms |
-| T7 | common | matplotlib, numpy | ✅ | 208ms | 600 | ✅ | 198ms | 600 | ✅ | 19,285ms | 172ms | 19,457ms |
-| T10 | common | pyyaml | ✅ | 58ms | 600 | ✅ | 58ms | 600 | ✅ | 3,750ms | 61ms | 3,811ms |
-| T14 | common | numpy, pandas | ✅ | 180ms | 600 | ✅ | 191ms | 600 | ✅ ⚡缓存 | 0ms | 206ms | 206ms |
-| T8 | b2only | pandas, beautifulsoup4 | ❌→✅ | 8,241ms | 1,700 | ✅ | 252ms | 600 | ✅ | 5,515ms | 243ms | 5,758ms |
-| T11 | b2only | pandas, openpyxl | ✅ | 193ms | 600 | ✅ | 200ms | 600 | ✅ | 2,127ms | 214ms | 2,341ms |
-| T12 | b2only | numpy, scipy, pillow | ❌→✅ | 13,441ms | 1,700 | ✅ | 235ms | 600 | ✅ | 18,364ms | 239ms | 18,603ms |
-| T13 | b2only | numpy, pandas, scikit-learn | ❌→✅ | 14,634ms | 1,700 | ✅ | 600ms | 600 | ✅ | 5,209ms | 573ms | 5,782ms |
-| T15 | b2only | numpy, pandas, matplotlib, scipy | ✅ | 523ms | 600 | ✅ | 496ms | 600 | ✅ ⚡缓存 | 0ms | 500ms | 500ms |
-| T9 | blind | wordcloud, matplotlib | ❌→✅ | 5,351ms | 1,700 | ❌→✅(缺wordcloud) | 27,183ms | 1,700 | ✅ | 5,610ms | 304ms | 5,914ms |
-| T16 | blind | faker | ❌→✅ | 5,997ms | 1,700 | ❌→✅(缺faker) | 5,544ms | 1,700 | ✅ | 3,008ms | 112ms | 3,120ms |
-| T17 | blind | pendulum | ❌→✅ | 5,599ms | 1,700 | ❌→✅(缺pendulum) | 4,887ms | 1,700 | ✅ | 5,053ms | 117ms | 5,170ms |
-| T18 | blind | qrcode, pillow | ❌→✅ | 7,740ms | 1,700 | ❌→✅(缺qrcode) | 4,649ms | 1,700 | ✅ | 1,732ms | 81ms | 1,813ms |
-| T19 | blind | loguru | ❌→✅ | 4,653ms | 1,700 | ❌→✅(缺loguru) | 4,550ms | 1,700 | ✅ | 2,834ms | 92ms | 2,926ms |
-| T20 | blind | tenacity | ❌→✅ | 5,331ms | 1,700 | ❌→✅(缺tenacity) | 4,542ms | 1,700 | ❌ | 1,619ms | 57ms | 1,676ms |
+| Task | 分类     | 依赖                               | B1 首次 | B1 耗时    | B1 Token | B2 首次           | B2 耗时    | B2 Token | Depot | Depot 安装 | Depot 执行 | Depot 耗时 |
+| ---- | ------ | -------------------------------- | ----- | -------- | -------- | --------------- | -------- | -------- | ----- | -------- | -------- | -------- |
+| T6   | common | pandas, requests                 | ✅     | 265ms    | 600      | ✅               | 239ms    | 600      | ✅     | 23,063ms | 217ms    | 23,280ms |
+| T7   | common | matplotlib, numpy                | ✅     | 208ms    | 600      | ✅               | 198ms    | 600      | ✅     | 19,285ms | 172ms    | 19,457ms |
+| T10  | common | pyyaml                           | ✅     | 58ms     | 600      | ✅               | 58ms     | 600      | ✅     | 3,750ms  | 61ms     | 3,811ms  |
+| T14  | common | numpy, pandas                    | ✅     | 180ms    | 600      | ✅               | 191ms    | 600      | ✅ ⚡缓存 | 0ms      | 206ms    | 206ms    |
+| T8   | b2only | pandas, beautifulsoup4           | ❌→✅   | 8,241ms  | 1,700    | ✅               | 252ms    | 600      | ✅     | 5,515ms  | 243ms    | 5,758ms  |
+| T11  | b2only | pandas, openpyxl                 | ✅     | 193ms    | 600      | ✅               | 200ms    | 600      | ✅     | 2,127ms  | 214ms    | 2,341ms  |
+| T12  | b2only | numpy, scipy, pillow             | ❌→✅   | 13,441ms | 1,700    | ✅               | 235ms    | 600      | ✅     | 18,364ms | 239ms    | 18,603ms |
+| T13  | b2only | numpy, pandas, scikit-learn      | ❌→✅   | 14,634ms | 1,700    | ✅               | 600ms    | 600      | ✅     | 5,209ms  | 573ms    | 5,782ms  |
+| T15  | b2only | numpy, pandas, matplotlib, scipy | ✅     | 523ms    | 600      | ✅               | 496ms    | 600      | ✅ ⚡缓存 | 0ms      | 500ms    | 500ms    |
+| T9   | blind  | wordcloud, matplotlib            | ❌→✅   | 5,351ms  | 1,700    | ❌→✅(缺wordcloud) | 27,183ms | 1,700    | ✅     | 5,610ms  | 304ms    | 5,914ms  |
+| T16  | blind  | faker                            | ❌→✅   | 5,997ms  | 1,700    | ❌→✅(缺faker)     | 5,544ms  | 1,700    | ✅     | 3,008ms  | 112ms    | 3,120ms  |
+| T17  | blind  | pendulum                         | ❌→✅   | 5,599ms  | 1,700    | ❌→✅(缺pendulum)  | 4,887ms  | 1,700    | ✅     | 5,053ms  | 117ms    | 5,170ms  |
+| T18  | blind  | qrcode, pillow                   | ❌→✅   | 7,740ms  | 1,700    | ❌→✅(缺qrcode)    | 4,649ms  | 1,700    | ✅     | 1,732ms  | 81ms     | 1,813ms  |
+| T19  | blind  | loguru                           | ❌→✅   | 4,653ms  | 1,700    | ❌→✅(缺loguru)    | 4,550ms  | 1,700    | ✅     | 2,834ms  | 92ms     | 2,926ms  |
+| T20  | blind  | tenacity                         | ❌→✅   | 5,331ms  | 1,700    | ❌→✅(缺tenacity)  | 4,542ms  | 1,700    | ❌     | 1,619ms  | 57ms     | 1,676ms  |
 
 ### 8.4 按任务分类汇总
 
 #### 普遍包 (4个) — B1 5包预装就能覆盖
 
-| Task | B1 | B2 | Depot | Depot 缓存 |
-|------|----|----|-------|----------|
-| T6 | ✅ 265ms | ✅ 239ms | ✅ 217ms | 首次安装 23,063ms |
-| T7 | ✅ 208ms | ✅ 198ms | ✅ 172ms | 首次安装 19,285ms |
-| T10 | ✅ 58ms | ✅ 58ms | ✅ 61ms | 首次安装 3,750ms |
-| T14 | ✅ 180ms | ✅ 191ms | ✅ 206ms | ✅ 缓存命中 |
+| Task | B1      | B2      | Depot   | Depot 缓存      |
+| ---- | ------- | ------- | ------- | ------------- |
+| T6   | ✅ 265ms | ✅ 239ms | ✅ 217ms | 首次安装 23,063ms |
+| T7   | ✅ 208ms | ✅ 198ms | ✅ 172ms | 首次安装 19,285ms |
+| T10  | ✅ 58ms  | ✅ 58ms  | ✅ 61ms  | 首次安装 3,750ms  |
+| T14  | ✅ 180ms | ✅ 191ms | ✅ 206ms | ✅ 缓存命中        |
 
 > 普遍包任务: B1 4/4 成功, B2 4/4 成功, Depot 4/4 成功。
 > 三方均一次成功，差异仅在 Token (B1/B2: 600, Depot: 700 含结构化报告)。
@@ -653,13 +661,13 @@ Agent 完成全部 15 个任务的总成本:
 
 #### B2 覆盖包 (5个) — 需 scipy/sklearn/bs4/openpyxl/pillow, B1 没有
 
-| Task | B1 | B2 | Depot |
-|------|----|----|-------|
-| T8 | ❌→✅ 修复8,241ms | ✅ 252ms | ✅ 243ms (首次安装5,515ms) |
-| T11 | ✅ 193ms | ✅ 200ms | ✅ 214ms (首次安装2,127ms) |
-| T12 | ❌→✅ 修复13,441ms | ✅ 235ms | ✅ 239ms (首次安装18,364ms) |
-| T13 | ❌→✅ 修复14,634ms | ✅ 600ms | ✅ 573ms (首次安装5,209ms) |
-| T15 | ✅ 523ms | ✅ 496ms | ✅ 500ms (⚡缓存) |
+| Task | B1             | B2      | Depot                  |
+| ---- | -------------- | ------- | ---------------------- |
+| T8   | ❌→✅ 修复8,241ms  | ✅ 252ms | ✅ 243ms (首次安装5,515ms)  |
+| T11  | ✅ 193ms        | ✅ 200ms | ✅ 214ms (首次安装2,127ms)  |
+| T12  | ❌→✅ 修复13,441ms | ✅ 235ms | ✅ 239ms (首次安装18,364ms) |
+| T13  | ❌→✅ 修复14,634ms | ✅ 600ms | ✅ 573ms (首次安装5,209ms)  |
+| T15  | ✅ 523ms        | ✅ 496ms | ✅ 500ms (⚡缓存)          |
 
 > B2 覆盖包任务: B1 2/5 成功 (需 Agent 修复), B2 5/5 成功, Depot 5/5 成功。
 > 这类任务暴露了 B1 的局限——仅有 5 个预装包的开发机遇到 scipy/sklearn/bs4 等就会失败。
@@ -667,14 +675,14 @@ Agent 完成全部 15 个任务的总成本:
 
 #### B2 盲区包 (6个) — 仅 Depot 能处理
 
-| Task | 依赖 | B1 | B2 | B2 盲区 | Depot |
-|------|------|----|----|--------|-------|
-| T9 | wordcloud, matplotlib | ❌→✅ 5,351ms | ❌→✅ 27,183ms | wordcloud | ✅ 304ms (首次安装5,610ms) |
-| T16 | faker | ❌→✅ 5,997ms | ❌→✅ 5,544ms | faker | ✅ 112ms (首次安装3,008ms) |
-| T17 | pendulum | ❌→✅ 5,599ms | ❌→✅ 4,887ms | pendulum | ✅ 117ms (首次安装5,053ms) |
-| T18 | qrcode, pillow | ❌→✅ 7,740ms | ❌→✅ 4,649ms | qrcode | ✅ 81ms (首次安装1,732ms) |
-| T19 | loguru | ❌→✅ 4,653ms | ❌→✅ 4,550ms | loguru | ✅ 92ms (首次安装2,834ms) |
-| T20 | tenacity | ❌→✅ 5,331ms | ❌→✅ 4,542ms | tenacity | ✅ 57ms (首次安装1,619ms) |
+| Task | 依赖                    | B1          | B2           | B2 盲区     | Depot                 |
+| ---- | --------------------- | ----------- | ------------ | --------- | --------------------- |
+| T9   | wordcloud, matplotlib | ❌→✅ 5,351ms | ❌→✅ 27,183ms | wordcloud | ✅ 304ms (首次安装5,610ms) |
+| T16  | faker                 | ❌→✅ 5,997ms | ❌→✅ 5,544ms  | faker     | ✅ 112ms (首次安装3,008ms) |
+| T17  | pendulum              | ❌→✅ 5,599ms | ❌→✅ 4,887ms  | pendulum  | ✅ 117ms (首次安装5,053ms) |
+| T18  | qrcode, pillow        | ❌→✅ 7,740ms | ❌→✅ 4,649ms  | qrcode    | ✅ 81ms (首次安装1,732ms)  |
+| T19  | loguru                | ❌→✅ 4,653ms | ❌→✅ 4,550ms  | loguru    | ✅ 92ms (首次安装2,834ms)  |
+| T20  | tenacity              | ❌→✅ 5,331ms | ❌→✅ 4,542ms  | tenacity  | ✅ 57ms (首次安装1,619ms)  |
 
 > **B2 盲区是最关键的对比**。B1 和 B2 在这 6 个任务上全部失败。
 > B1 失败 6/6 (需 Agent 修复), B2 失败 6/6 (B2 的 42 个预装包不含 wordcloud/faker/pendulum/qrcode/loguru/tenacity), Depot 成功 5/6。
@@ -700,11 +708,11 @@ Depot (1 次失败):
   15 个任务: 15 × 700            = 10,500 tokens
 ```
 
-| | Token | vs B1 | vs B2 | 反馈格式 |
-|---|---|---|---|---|
-| B1 | 18,900 | — | — | 原始 ImportError traceback |
-| B2 | 15,600 | -17% | — | 原始 traceback 或 stdout |
-| **Depot** | **10,500** | **-44%** | **-32%** | **结构化报告 (依赖/安装/执行/建议)** |
+|                                                                        | Token  | vs B1 | vs B2 | 反馈格式                     |
+| ---------------------------------------------------------------------- | ------ | ----- | ----- | ------------------------ |
+| B1                                                                     | 18,900 | —     | —     | 原始 ImportError traceback |
+| B2                                                                     | 15,600 | -17%  | —     | 原始 traceback 或 stdout    |
+| **Depot** | **10,500** | **-44%** | **-32%** | **结构化报告 (依赖/安装/执行/建议)** |        |       |       |                          |
 
 ### 8.6 对话轮次对比
 
@@ -718,11 +726,11 @@ Depot: 15×1      = 15 轮 — Agent 只发代码，拿到报告即完成
 
 ### 8.7 端到端时间说明
 
-| 时间组成 | B1 | B2 | Depot |
-|---------|----|----|-------|
-| 正常执行时间 | ~28.4s | ~2.5s | ~3.2s |
-| Agent 修复等待 | ~44s (9个失败 × ~3s LLM + pip) | ~51s (6个盲区) | ~0s |
-| 自动安装时间 | 0 | 0 | ~97s (一次性) |
+| 时间组成       | B1                          | B2          | Depot      |
+| ---------- | --------------------------- | ----------- | ---------- |
+| 正常执行时间     | ~28.4s                      | ~2.5s       | ~3.2s      |
+| Agent 修复等待 | ~44s (9个失败 × ~3s LLM + pip) | ~51s (6个盲区) | ~0s        |
+| 自动安装时间     | 0                           | 0           | ~97s (一次性) |
 
 > Depot 总耗时 100s 中 ~97s 是 pip 安装时间——**Agent 不参与等待**。B1/B2 的修复时间里 Agent 必须在 LLM 前等待 ~3s + 等待 pip 完成 + 重新执行。
 > Depot 安装是一次性成本。T14 (0ms) 和 T15 (0ms) 的缓存命中证明随着任务增长，安装开销趋近于零。
@@ -748,41 +756,47 @@ Depot: 15×1      = 15 轮 — Agent 只发代码，拿到报告即完成
 ### 8.10 实验证据
 
 所有容器、镜像、数据文件均保留在 `docker-experiment/` 目录:
-- 3 个环境容器: `docker exec -it b1-env|b2-env|dp-env bash`
-- B2 镜像: `depot-b2-final` (1.1GB) + `results/b2-image.tar`
-- 原始数据: `results/results_20260607_212846.json` (8.9KB)
-- 任务代码: `results/T6.py` ~ `T20.py`
-- 实验脚本: `run_final.py` (可复现)
----
+
+* 3 个环境容器: `docker exec -it b1-env|b2-env|dp-env bash`
+
+* B2 镜像: `depot-b2-final` (1.1GB) + `results/b2-image.tar`
+
+* 原始数据: `results/results_20260607_212846.json` (8.9KB)
+
+* 任务代码: `results/T6.py` ~ `T20.py`
+
+* 实验脚本: `run_final.py` (可复现)
+
+***
 
 ## 9. 项目进度与状态
 
 ### 9.1 当前进度
 
-| 模块 | 状态 | 说明 |
-|------|------|------|
-| 详细设计文档 | ✅ | 10 章，选题背景→Gap分析→系统设计→实验→结果→路线图 |
-| 核心管道实现 | ✅ | 11 个模块 ~2000行：extractor/resolver/installer/executor/feedback/cache/pipeline/config/cli/sdk |
-| 单元测试 | ✅ | 8 个测试文件，125 个测试用例，全部通过 (5s) |
-| Baseline B1/B2 | ✅ | B1 裸执行（subprocess）+ B2 预装全家桶（venv+57包） |
-| 15 个 Benchmark | ✅ | L1×5（0-1依赖）/ L2×6（2-3依赖）/ L3×4（4+依赖） |
-| 实验与结果分析 | ✅ | 15×3=45 组实验，7 小节完整分析写入第 8 章 |
-| 多包管理器 | ✅ | pip / uv / poetry 自动检测 + 回退 |
-| CLI 工具 | ✅ | `depot run` / `depot check` / `depot cache` |
-| Python SDK | ✅ | `depot.sdk.execute()` / `depot.sdk.check()` / `configure()` / `inspect_environment()` |
-| README + 使用文档 | ✅ | README.md (217行) + docs/USAGE.md (完整使用文档) |
-| GitHub 开源 | ✅ | 仓库 + Release v1.0.0: github.com/canglang007/depot-agent |
+| 模块             | 状态 | 说明                                                                                         |
+| -------------- | -- | ------------------------------------------------------------------------------------------ |
+| 详细设计文档         | ✅  | 10 章，选题背景→Gap分析→系统设计→实验→结果→路线图                                                             |
+| 核心管道实现         | ✅  | 11 个模块 ~2000行：extractor/resolver/installer/executor/feedback/cache/pipeline/config/cli/sdk |
+| 单元测试           | ✅  | 8 个测试文件，125 个测试用例，全部通过 (5s)                                                                |
+| Baseline B1/B2 | ✅  | B1 裸执行（subprocess）+ B2 预装全家桶（venv+57包）                                                     |
+| 15 个 Benchmark | ✅  | L1×5（0-1依赖）/ L2×6（2-3依赖）/ L3×4（4+依赖）                                                       |
+| 实验与结果分析        | ✅  | 15×3=45 组实验，7 小节完整分析写入第 8 章                                                                |
+| 多包管理器          | ✅  | pip / uv / poetry 自动检测 + 回退                                                                |
+| CLI 工具         | ✅  | `depot run` / `depot check` / `depot cache`                                                |
+| Python SDK     | ✅  | `depot.sdk.execute()` / `depot.sdk.check()` / `configure()` / `inspect_environment()`      |
+| README + 使用文档  | ✅  | README.md (217行) + docs/USAGE.md (完整使用文档)                                                  |
+| GitHub 开源      | ✅  | 仓库 + Release v1.0.0: github.com/canglang007/depot-agent                                    |
 
 ### 9.2 技术栈
 
-| 组件 | 技术选型 | 理由 |
-|------|---------|------|
-| 核心语言 | Python 3.12 | 目标语言一致，生态丰富 |
-| AST 解析 | 标准库 `ast` | 零依赖 |
-| 依赖安装 | pip / uv / poetry (subprocess) | 多后端自动选择 |
-| 环境隔离 | `venv` + `subprocess` | 轻量，启动快 |
-| 配置管理 | JSON (depot.lock) | 简单直接 |
-| 测试框架 | pytest | 标准选择 |
+| 组件     | 技术选型                           | 理由          |
+| ------ | ------------------------------ | ----------- |
+| 核心语言   | Python 3.12                    | 目标语言一致，生态丰富 |
+| AST 解析 | 标准库 `ast`                      | 零依赖         |
+| 依赖安装   | pip / uv / poetry (subprocess) | 多后端自动选择     |
+| 环境隔离   | `venv` + `subprocess`          | 轻量，启动快      |
+| 配置管理   | JSON (depot.lock)              | 简单直接        |
+| 测试框架   | pytest                         | 标准选择        |
 
 ### 9.3 实际代码结构
 
@@ -826,48 +840,6 @@ depot/
 ├── experiment-results/       # 实验结果（保留）
 └── DESIGN.md                 # 本文档
 ```
-
-***
-
-## 10. 开源路线图
-
-### v0.1 — Demo（课程阶段）✅ 已完成
-
-* [x] 设计文档（本文档）
-* [x] 核心 Pipeline 实现（8 个模块）
-* [x] 2 个 Baseline（B1裸执行 + B2全家桶）
-* [x] 15 个 Benchmark Tasks
-* [x] 实验执行脚本
-* [x] 125 个单元测试
-
-### v0.2 — Alpha ✅ 已完成
-
-* [x] 支持 pip / uv / poetry 多种包管理器（自动检测 + 回退）
-* [x] CLI 工具（`depot run` / `depot check` / `depot cache`）
-* [ ] 依赖可视化（生成依赖图）—— 后续版本
-
-### v0.3 — Beta ✅ 已完成
-
-* [x] Python SDK（`depot.sdk.execute()` / `depot.sdk.check()`）
-* [ ] 跨语言支持（Node.js / npm）—— 后续版本
-* [ ] 远程执行后端 —— 后续版本
-
-### v1.0 — 正式版 ✅ 基本完成
-
-* [x] Agent 集成示例（SDK API + CLI）
-* [x] 文档 + 教程（README.md + DESIGN.md）
-* [x] 结构化反馈（JSON/Markdown 双格式）
-* [x] 多种包管理器支持
-* [ ] 性能优化（预热的执行池）—— 后续版本
-* [ ] LangChain / Autogen 官方集成 —— 后续版本
-
-### 后续展望
-
-* [ ] 跨语言支持（Node.js / npm / yarn）
-* [ ] 依赖可视化 —— 生成 import 依赖图
-* [ ] 远程执行后端 —— 类似 E2B 的云端沙箱
-* [ ] 预热执行池 —— 预启动 Python 进程，消除冷启动延迟
-* [ ] IDE 插件 —— VS Code / JetBrains 集成
 
 ***
 
