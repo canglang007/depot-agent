@@ -41,30 +41,39 @@ $^1$北京大学软件与微电子学院，北京 102600
 \maketitle
 
 %===========================================================
-% 中文摘要
+% 摘要
 %===========================================================
-\begin{abstract}
-\noindent
-代码生成Agent（如Claude Code、Cline、Aider、SWE-Agent等）已成为软件开发的新范式，其核心依赖“生成$\rightarrow$执行$\rightarrow$反馈”闭环来保证代码质量。然而，当前Agent面临一个根本性困境：\textbf{Agent不知道目标执行环境中有哪些包可用}。当生成的代码包含第三方库依赖（如numpy、pandas、torch）时，Agent盲目地编写import语句，在遭遇ModuleNotFoundError后才被动修复，导致大量Token浪费在多轮试错上。现有方案要么采用裸执行策略（如Open Interpreter、AutoGPT），将依赖问题完全交给Agent手动处理；要么采用预装全家桶策略（如OpenAI Code Interpreter、E2B），预装固定包集合但臃肿且存在覆盖盲区。两类方案的共同缺陷在于缺乏在“Agent提交代码”与“执行代码”之间的依赖感知能力。本文提出\textbf{Depot}，一个面向代码生成Agent的按需依赖解析系统。Depot在Agent提交代码和执行代码之间插入一条五组件自动化管道：AST静态依赖提取器$\rightarrow$环境感知依赖解析器$\rightarrow$多后端按需安装器（pip/uv/poetry）$\rightarrow$轻量隔离执行器（venv+subprocess）$\rightarrow$结构化反馈生成器（JSON+Markdown），将依赖管理从Agent的“手动负担”变为系统的“自动化管道”。在Docker严格隔离环境中设计了15个Benchmark任务，对比三种代表不同范式的方案（B1典型开发机、B2预装环境、Depot）。实验结果表明：Depot首次执行成功率达93\%（14/15），Agent Token消耗为10,500，相比B1裸执行（18,900 tokens）节省44\%，相比B2预装环境（15,600 tokens）节省32\%；成功消除了B2的6个盲区（wordcloud、faker、pendulum、qrcode、loguru、tenacity），且零预装基础设施（vs B2的1,057MB镜像）。本文方案已通过PyPI发布为pip包（depot-agent），提供Claude Code Skill集成和完整的CLI/SDK接口，实现了从学术原型到可实用开源工具的完整工程化。
+\vspace{-0.5cm}
+\noindent{\heiti 摘要：}\ignorespaces
+代码生成Agent（如Claude Code、Cline、Aider、SWE-Agent等）已成为软件开发的新 paradigm，其核心依赖“生成$\rightarrow$执行$\rightarrow$反馈”闭环来保证代码质量。然而，当前Agent面临一个根本性困境：\textbf{Agent不知道目标执行环境中有哪些包可用}。当生成的代码包含第三方库依赖时，Agent盲目地编写import语句，在遭遇ModuleNotFoundError后才被动修复，导致大量Token浪费在多轮试错上。现有方案要么采用裸执行策略，将依赖问题全部交给Agent手动处理；要么采用预装全家桶策略，预装固定包集合但臃肿且存在覆盖盲区。两类方案的共同缺陷在于缺乏在“Agent提交代码”与“执行代码”之间的依赖感知能力。本文提出\textbf{Depot}，一个面向代码生成Agent的按需依赖解析系统。Depot在Agent提交代码和执行代码之间插入一条五组件自动化管道：AST静态依赖提取器$\rightarrow$环境感知依赖解析器$\rightarrow$多后端按需安装器（pip/uv/poetry）$\rightarrow$轻量隔离执行器（venv+subprocess）$\rightarrow$结构化反馈生成器（JSON+Markdown），将依赖管理从Agent的“手动负担”变为系统的“自动化管道”。在Docker严格隔离环境中设计了15个Benchmark任务，对比三种代表不同范式的方案（B1典型开发机、B2预装环境、Depot）。实验结果表明：Depot首次执行成功率达93\%（14/15），Agent Token消耗为10,500，相比B1裸执行（18,900 tokens）节省44\%，相比B2预装环境（15,600 tokens）节省32\%；成功消除了B2的6个盲区（wordcloud、faker、pendulum、qrcode、loguru、tenacity），且零预装基础设施（vs B2的1,057MB镜像）。本文方案已通过PyPI发布为pip包（depot-agent），提供Claude Code Skill集成和完整的CLI/SDK接口，实现了从学术原型到可实用开源工具的完整工程化。
 
 \medskip
 \noindent{\bf 关键词：}代码生成Agent；依赖管理；按需解析；代码执行；结构化反馈；依赖感知管道
 
 \medskip
 \noindent{\bf 中图分类号：}TP311\quad\textbf{文献标识码：}A
-\end{abstract}
 
 %===========================================================
-% 英文摘要
+% 英文题目、作者、摘要
 %===========================================================
-\begin{abstract}
-\def\abstractname{Abstract}
-\noindent
-Code-generating agents (e.g., Claude Code, Cline, Aider, SWE-Agent) have become a new paradigm in software development, relying on a ``generate $\rightarrow$ execute $\rightarrow$ feedback'' loop to ensure code quality. However, current agents face a fundamental dilemma: \textbf{the agent does not know which packages are available in its execution environment}. When generated code contains third-party imports (e.g., numpy, pandas, torch), the agent blindly writes import statements and only reacts after encountering ModuleNotFoundError, leading to significant token waste in multi-turn error-recovery loops. Existing approaches either adopt bare execution (e.g., Open Interpreter, AutoGPT), leaving dependency handling entirely to the agent, or pre-installed package sets (e.g., OpenAI Code Interpreter, E2B), which are bloated and have coverage blind spots. The common deficiency of both approaches is the lack of dependency awareness between code submission and execution. This paper presents \textbf{Depot}, an on-demand dependency resolution system for code-generating agents. Depot inserts a five-component automated pipeline between code submission and execution—AST-based dependency extraction $\rightarrow$ environment-aware resolution $\rightarrow$ multi-backend on-demand installation (pip/uv/poetry) $\rightarrow$ lightweight isolated execution (venv+subprocess) $\rightarrow$ structured feedback generation (JSON+Markdown)—transforming dependency management from the agent's manual burden into an automated system pipeline. Comparative experiments on 15 benchmark tasks in strictly isolated Docker containers demonstrate that Depot achieves 93\% (14/15) first-attempt success rate with 10,500 agent tokens consumed—44\% fewer than B1 bare execution (18,900 tokens) and 32\% fewer than B2 pre-installed environment (15,600 tokens). Depot eliminates all 6 blind spots of B2 (wordcloud, faker, pendulum, qrcode, loguru, tenacity) while requiring zero pre-installation infrastructure (vs B2's 1,057MB image). The system has been released as a pip package (depot-agent) via PyPI, with Claude Code Skill integration and comprehensive CLI/SDK interfaces, achieving complete engineering from academic prototype to practical open-source tool.
+\vspace{0.5cm}
+\begin{center}
+{\LARGE\bfseries Depot: An On-Demand Dependency Resolution System\\ for Code-Generating Agents}
+\vspace{0.3cm}
+
+\small
+LIU Zhuoming$^1$, SHI Ruikai$^1$, HAN Keke$^1$ \\[2mm]
+\footnotesize
+$^1$School of Software and Microelectronics, Peking University, Beijing 102600, China
+\end{center}
+
+\vspace{0.3cm}
+\noindent{\textbf{Abstract:}}
+\ignorespaces
+Code-generating agents (e.g., Claude Code, Cline, Aider, SWE-Agent) have become a new paradigm in software development, relying on a ``generate$\rightarrow$execute$\rightarrow$feedback'' loop to ensure code quality. However, these agents face a fundamental dilemma: \textbf{the agent does not know which packages are available in its execution environment}. When generated code involves third-party imports, the agent blindly writes import statements and only reacts after encountering ModuleNotFoundError, leading to significant token waste in multi-turn error-recovery loops. Existing approaches either adopt bare execution, leaving dependency handling entirely to the agent, or pre-installed package sets, which are bloated and have coverage blind spots. The common deficiency is the lack of dependency awareness between code submission and execution. This paper presents \textbf{Depot}, an on-demand dependency resolution system for code-generating agents. Depot inserts a five-component automated pipeline between code submission and execution: AST-based dependency extraction, environment-aware resolution, multi-backend on-demand installation, lightweight isolated execution, and structured feedback generation. Comparative experiments on 15 benchmark tasks in strictly isolated Docker containers demonstrate that Depot achieves 93\% (14/15) first-attempt success rate with 10,500 agent tokens consumed—44\% fewer than B1 bare execution (18,900 tokens) and 32\% fewer than B2 pre-installed environment (15,600 tokens). The system has been open-sourced as a pip package (depot-agent) via PyPI with Claude Code Skill integration.
 
 \medskip
 \noindent{\bf Key words:} code-generating agent; dependency management; on-demand resolution; code execution; structured feedback; dependency-aware pipeline
-\end{abstract}
 
 %===========================================================
 % 1. 引言
