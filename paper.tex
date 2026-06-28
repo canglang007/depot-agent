@@ -227,7 +227,13 @@ Depot的整体架构是一条在Agent提交代码和执行代码之间的五组�
 
 \textbf{对比方案}：（1）B1裸执行（代表Open Interpreter/AutoGPT范式\cite{openinterpreter2023,autogpt2024}），预装5个最常用包（373MB）。（2）B2预装环境（代表OpenAI Code Interpreter/E2B范式\cite{openai2023code,e2b2024}），预装42个常用数据科学包（1,057MB）。（3）Depot（本系统），零预装，按需检测+安装+缓存。
 
-\textbf{任务设计}：15个Benchmark任务分为三类：（a）普遍包（4个）——仅需numpy/pandas/matplotlib/requests/pyyaml；（b）B2覆盖包（5个）——需scipy/sklearn/bs4/openpyxl/pillow；（c）B2盲区包（6个）——需wordcloud/faker/pendulum/qrcode/loguru/tenacity，B1和B2均失败。
+\textbf{任务设计}：15个Benchmark任务分为三类：\par
+\noindent\hspace{1em}
+(a) 普遍包（4个）——仅需numpy/pandas/matplotlib/requests/pyyaml；\par
+\noindent\hspace{1em}
+(b) B2覆盖包（5个）——需scipy/sklearn/bs4/openpyxl/pillow；\par
+\noindent\hspace{1em}
+(c) B2盲区包（6个）——需wordcloud/faker/pendulum/qrcode/loguru/tenacity，B1和B2均失败。
 
 \textbf{Agent Token模型}：基于LLM API定价\cite{openai2024pricing,anthropic2024pricing}估算——成功时600 tokens，失败修复时1,700 tokens（代码+ImportError+LLM分析+pip install+重执行），Depot始终700 tokens。
 
@@ -330,10 +336,10 @@ SDK的一行调用（\texttt{result = execute(code)}）背后是全自动的五�
 
 \subsection{Claude Code Skill集成}
 借鉴MCP协议\cite{anthropic2025mcp}和Claude Code Skill系统\cite{anthropic2025skillsystem}的扩展机制，以及TaskWeaver\cite{fang2024microsoftskills}的code-first设计理念，Depot实现了完整的Claude Code Skill集成。Skill定义文件（SKILL.md）描述了Depot的使用场景、安装方式、CLI命令和SDK接口。用户通过以下命令一键安装：
-\begin{verbatim}
+{\small\begin{verbatim}
 bash <(curl -sL https://raw.githubusercontent.com/
   canglang007/depot-agent/main/scripts/install-skill.sh)
-\end{verbatim}
+\end{verbatim}}
 安装后在Claude Code中输入\verb|/depot-agent|即可调用Skill，Claude自动使用Depot执行含第三方依赖的Python代码，而非裸subprocess.run。这实现了Depot设计初衷的真正落地——让Agent无感地享受按需依赖解析。
 
 \subsection{PyPI发布与版本管理}
@@ -686,5 +692,26 @@ PyPA.
 \newblock \url{https://twine.readthedocs.io}, 2024.
 
 \end{thebibliography}
+
+%===========================================================
+% 论文分工
+%===========================================================
+\section*{论文分工}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}p{2.0cm} p{3.5cm} p{5.0cm}@{}}
+\toprule
+成员 & 负责章节 & 具体贡献 \\
+\midrule
+史瑞恺 & 第1章（选题与背景）、第2章（相关工作）、第4.2节（AST提取器） & 选题调研、Gap分析、相关工作梳理、extractor.py实现（354行）、提取器单元测试（72个） \\
+\hline
+韩可可 & 第4.3-4.6节（解析器/安装器/执行器/缓存）、第6章（工程化） & 核心引擎实现（resolver/installer/executor/cache/pipeline, 共937行）、CLI工具与PyPI发布 \\
+\hline
+刘卓明 & 第3章（问题定义）、第4.7节（创新点）、第5章（实验）、第4.1/4.8节（架构/反馈）、第7-8章 & feedback.py（234行）、sdk.py（209行）、cli.py（187行）、实验设计与数据分析、论文撰写与统稿 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \end{document}
