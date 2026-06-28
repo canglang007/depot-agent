@@ -230,7 +230,7 @@ Depot的整体架构是一条在Agent提交代码和执行代码之间的五组�
 \textbf{对应Gap}：解决了Gap 3。
 
 \subsection{核心创新点}
-\textbf{创新1：依赖感知管道（架构创新）。} 在Agent提交代码与执行代码之间插入自动化依赖管理层，如同GC之于内存管理\cite{agache2020firecracker}。
+\textbf{创新1：依赖感知管道（架构创新）。} 在Agent提交代码与执行代码之间插入自动化依赖管理层，如同GC之于内存管理。
 \textbf{创新2：分级反馈机制（机制创新）。} 依赖级/执行级/建议级三级结构化输出。
 \textbf{创新3：透明缓存系统（工程创新）。} depot.lock跨任务复用，缓存命中$\approx$零开销。
 
@@ -301,7 +301,7 @@ B2盲区包(6个) & 0/6 & 0/6 & \textbf{5/6} \\
 
 \textbf{Gap 1（依赖失明）验证：} B1和B2对依赖完全无感知（0个依赖被主动检测）。B1的9次ImportError和B2的6次盲区错误都是在执行失败后才发现依赖缺失。Depot通过AST静态分析\cite{pythonast2024}对每个任务主动检测全部依赖，结构化报告明确告知Agent依赖情况。这验证了AST静态分析作为Gap 1解决方案的有效性。
 
-\textbf{Gap 2（按需解析缺失）验证：} B1为9个失败任务消耗了15,300 tokens在机械性的修复循环上——读错误$\rightarrow$分析$\rightarrow$生成pip install命令$\rightarrow$等待安装$\rightarrow$重执行。B2预装了42个包（1,057MB镜像）后仍有6个盲区，盲区任务退化为B1模式，证明了固定预装在面对PyPI的20万+包时必然存在盲区\cite{pypi2024,cox2019dependency}。Depot通过按需安装\cite{uv2024,pip2024}覆盖了全部依赖，且缓存机制\cite{pep517}使后续任务安装时间为0ms。
+\textbf{Gap 2（按需解析缺失）验证：} B1为9个失败任务消耗了15,300 tokens在机械性的修复循环上——读错误$\rightarrow$分析$\rightarrow$生成pip install命令$\rightarrow$等待安装$\rightarrow$重执行。B2预装了42个包（1,057MB镜像）后仍有6个盲区，盲区任务退化为B1模式，证明了固定预装在面对PyPI的20万+包时必然存在盲区\cite{pypi2024,cox2019dependency}。Depot通过按需安装和缓存复用\cite{uv2024,pip2024}使后续任务安装时间为0ms（参见B2盲区分析中T14/T15的缓存命中记录）。
 
 \textbf{Gap 3（反馈非结构化）验证：} B1/B2失败时返回原始ModuleNotFoundError，Agent无法判断根因。Depot始终返回结构化报告，包含依赖分析（检测到N个依赖，安装M个包）、执行结果（exit code/stdout/stderr/耗时）、修复建议（具体到包级别的安装命令）。
 
